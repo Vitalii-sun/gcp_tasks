@@ -1,3 +1,7 @@
+# data "local_file" "index_html" {
+#   filename = "${path.module}/index.html"
+# }
+
 data "google_compute_image" "ubuntu" {
   family  = var.image_family
   project = var.image_project
@@ -28,15 +32,21 @@ resource "google_compute_instance" "jump" {
     }
   }
 
+  metadata = {
+    ssh-keys = "devops:${var.devops_ssh_public_key}"
+  }
+
   metadata_startup_script = templatefile("${path.module}/startup_jump.sh.tpl", {
-    ELASTIC_HOST          = "https://elasticsearch.babenkov.pp.ua:9200"
-    KIBANA_HOST           = "https://kibana.babenkov.pp.ua:5601"
-    ELASTIC_USERNAME      = "elastic"
-    ELASTIC_PASSWORD      = "your_elastic_password"
-    DOMAIN_NAME           = var.domain_name
-    DEVOPS_SSH_PUBLIC_KEY = var.devops_ssh_public_key
+    ELASTIC_HOST     = var.elastic_host
+    KIBANA_HOST      = var.kibana_host
+    ELASTIC_USERNAME = var.elastic_username
+    ELASTIC_PASSWORD = var.elastic_password
+    DOMAIN_NAME      = var.domain_name
+    PRIVATE_BACKEND_IP = var.private_ip
+
   })
 }
+
 
 resource "google_compute_instance" "private" {
   name         = "private-host"
